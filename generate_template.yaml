@@ -1,0 +1,236 @@
+# PyPSA-India workbook template settings
+# =====================================
+# Run from the pypsa-india folder:  snakemake generate_template
+# Required settings are active below. Optional settings are commented out.
+# To enable an optional setting, remove its leading '# ' AND uncomment its
+# parent heading. Keep the indentation. Example numbers are illustrations,
+# not calibrated policy assumptions or input data.
+#
+# Output by default:
+#   data/<scenario.name>/<scenario.name>_template.xlsx
+# Fill the generated workbook's placeholders yourself; keep its units row.
+
+# REQUIRED: a folder-safe scenario name and the modelled years (ascending).
+scenario:
+  name: my_model
+  years: [2030, 2035, 2040, 2045, 2050]
+  # currency: INR                 # Label for monetary values.
+  # fiscal_year: true             # FY2030 = Apr 2029 through Mar 2030.
+  # base_year: 2030               # Scenario metadata; years sets the columns.
+
+# REQUIRED: geographical boundary.
+# country: IN; region: NR | WR | SR | ER | NER; state: e.g. KL, MH, GJ.
+spatial:
+  boundary:
+    level: country
+    id: IN
+  # resolution: region           # region | state. Defaults: country -> region,
+                                 # region -> state, state -> state.
+  # external: aggregate          # aggregate adds EXT; none removes it.
+                                 # Use none for a closed all-India model.
+  # role_buses: shared            # shared | per_bus (storage/store role buses).
+  # include_islanded: false       # Current region map contains no island states.
+  # load_bus: NR                  # Legacy single-Demand workbooks only;
+                                 # generated multi-load workbooks use Loads.bus.
+
+# REQUIRED: carrier labels used in input rows and Excel dropdowns.
+# Add/remove labels as needed; spelling must agree across workbook sheets.
+carriers:
+  - Coal
+  - Lignite
+  - Nuclear
+  - Hydro
+  - Hydro RoR
+  - Hydro Storage
+  - Solar
+  - Wind
+  - LFO
+  - Co-Gen
+  - Market
+  - PSP
+  - Battery Storage
+
+# OPTIONAL: output and repeat-generation controls.
+# Paths are relative to this folder; absolute paths also work.
+# Without merge/force, an existing workbook is preserved and the command stops.
+# Enable only ONE: merge keeps existing rows in retained columns and adds new
+# columns/sheets; force replaces the workbook after saving an .xlsx.bak backup.
+# template:
+#   output: data/my_model/my_model_template.xlsx
+#   merge: false
+#   force: false
+
+# OPTIONAL: sheet selection. All these keys are supported.
+# Base sheets are always included: Regions, Buses, Loads, Demand_<load>,
+# Generators, P_max_pu, P_min_pu, Capital_cost, wacc, Lifetime, FOM, CO2.
+# Setting a base-sheet flag to false does not remove those sheets.
+# Dependencies are added automatically; no separate pipeline flags are needed.
+components:
+  buses: true                   # Base sheet; already included.
+  generators: true              # Base sheet; already included.
+  demand: true                  # Base demand sheets; already included.
+  loads: true                   # Base Loads sheet; already included.
+  availability: true            # Base P_max_pu/P_min_pu; already included.
+  new_generators: false          # New_Generators, Pipeline_p_min/p_max,
+                                # Fuel_cost and Startupcost.
+  new_stores: false              # New_Storage and Pipeline_storage.
+  storage_units: false           # Alias of new_stores, same sheets.
+  links: true                   # Explicit Links topology.
+  transfer: true                # Transfer_Capacity corridors.
+# New_Storage.Type selects Store (MWh) or Storage (StorageUnit, MW).
+# new_stores/storage_units flags do not filter rows by Type.
+
+# OPTIONAL: explicit load names. Omit to create one load per electricity bus,
+# including EXT when external: aggregate. Each gets Demand_<name> plus a row
+# in Loads. A name matching a bus gets that bus automatically; otherwise fill
+# its bus in Loads. Names must be unique and fit Excel's 31-character sheet
+# limit after the 'Demand_' prefix (maximum 24 characters per load name).
+# loads: [NR, WR, SR, ER, NER]
+
+# OPTIONAL: temporal selection. custom_days adds a 'Custom days' sheet.
+# all = every hour; peak_weeks = highest-demand whole ISO week of each month.
+# snapshots:
+#   select: all                   # all | custom_days | peak_weeks.
+#   resolution: 1                 # Hours/snapshot; one of 1, 2, 3, 4, 6, 8, 12, 24.
+
+# OPTIONAL: model settings for the later build/solve stage.
+# These do not run a solver or fill template data. Generation writes a
+# scenario_config.yaml beside the workbook; edit settings there before running
+# the main workflow.
+# mode: myopic                    # myopic | perfect_foresight.
+# family: expansion               # expansion | dispatch.
+# dispatch freezes capacity at max(nominal capacity, minimum capacity).
+# Connected fixed-capacity Links then need positive capacities in the workbook.
+
+# OPTIONAL: perfect-foresight investment-period weights (not used by myopic).
+# Omitted durations default to the gap to the next model year; last defaults
+# to ONE year. Supplied keys must be model years; omitted years use defaults.
+# discount_rate is a fraction.
+# investment_periods:
+#   years: {2030: 5, 2035: 5, 2040: 5, 2045: 5, 2050: 5}
+#   discount_rate: 0.0
+
+# OPTIONAL: workbook cost-row selection and fixed operating costs.
+# Row labels must match the name column of the wacc sheet.
+# costs:
+#   wacc_row: WACC %               # Default generator WACC row label.
+#   wacc_row_storage: WACC %       # Default storage WACC row label.
+#   include_fom: true
+# Social discounting is investment_periods.discount_rate above.
+
+# OPTIONAL: storage defaults and retirement behavior.
+# storage:
+#   max_hours: 6                   # StorageUnit energy / power, hours.
+#   standing_loss: 0.002           # Hourly fractional energy loss.
+# retirement:
+#   enable: true                  # Remove expired assets between horizons.
+# unit_commitment:
+#   enable: false                 # Only false is implemented; do not enable.
+
+# OPTIONAL: paths for the later solve, relative to the pypsa-india folder.
+# Normally the single .xlsx beside scenario_config.yaml is discovered.
+# paths:
+#   workbook: data/my_model/my_model_template.xlsx
+
+# OPTIONAL: solver/logging overrides for the later solve. Project defaults
+# come from base_config.yaml; generation itself needs no solver.
+# solver:
+#   name: highs                   # highs | gurobi | cplex | glpk (if installed).
+#   options:                      # Arbitrary options supported by that solver.
+#     threads: 8
+#     presolve: "on"
+#     parallel: "on"
+#   highs:                        # Matching solver block overrides options.
+#     solver: ipm                 # simplex | ipm | pdlp.
+#     run_crossover: "off"
+#   gurobi:
+#     Method: 2
+#     Crossover: 0
+#     BarConvTol: 1.0e-6
+# logging:
+#   level: INFO                   # DEBUG | INFO | WARNING | ERROR.
+#   format: "%(levelname)s:%(name)s:%(message)s"
+
+# OPTIONAL: all eight supported policy classes. Uncomment 'constraints:' and
+# only the entries/fields you want. Give each entry a unique name.
+# These belong to the scenario YAML, not workbook sheets; generation does not
+# apply constraints. Values below are examples, not policy recommendations.
+# Annual limits/shares/margins/cycle caps can be scalars (same in all years)
+# or maps covering EVERY model year; there is no interpolation. Example:
+#   limit_tco2: {2030: 12000000, 2035: 10000000, 2040: 8000000, 2045: 6000000, 2050: 4000000}
+# Month maps and capacity-credit maps are not year maps.
+# For classes accepting scope, omit it for the whole system. Alternatives:
+#   scope: {bus: NR} / {state_id: KL} / {region_id: SR}
+# Choose a scope actually represented by the selected buses/components.
+# constraints:
+#
+#   # Annual CO2 ceiling, tCO2. Required: name, limit_tco2, basis.
+#   - class: CO2EmissionLimit
+#     name: co2_cap
+#     limit_tco2: 12000000
+#     basis: electrical_output    # electrical_output | fuel_input.
+#     # scope: {bus: NR}
+#
+#   # Absolute annual carrier energy/fuel ceiling, MWh.
+#   # Required: name, carrier, limit_mwh, basis.
+#   - class: FuelSupplyLimit
+#     name: coal_supply
+#     carrier: Coal
+#     limit_mwh: 90000000
+#     basis: electrical_output    # fuel_input divides output by efficiency.
+#     # scope: {bus: NR}
+#
+#   # Renewable generation >= target share of served load.
+#   # Required: name, target_share, eligible_carriers.
+#   - class: RPOConstraint
+#     name: renewable_share
+#     target_share: 0.43
+#     eligible_carriers: [Solar, Wind, Hydro]
+#     # scope: {bus: NR}
+#     # category: total_renewable
+#     # policy_vintage: ""
+#     # accounting_basis: served_load  # Only served_load is supported.
+#
+#   # Monthly utilization of total built capacity (new capacity also counts).
+#   # Required: name, carrier and at least one maximum/minimum month map.
+#   - class: MonthlyCufsProfile
+#     name: hydro_monthly
+#     carrier: Hydro
+#     max_cf_by_month: {1: 0.20, 2: 0.18, 6: 0.55}
+#     # min_cf_by_month: {6: 0.30} # Unlisted months get no bound.
+#     # scope: {bus: NR}
+#     # allow_variable_renewable_min: false
+#
+#   # Signed net corridor limits, MW. Required: name, from_bus, to_bus,
+#   # and at least one of max_export_mw / max_import_mw.
+#   - class: ImportExportLimit
+#     name: nr_wr_corridor
+#     from_bus: NR
+#     to_bus: WR
+#     max_export_mw: 5000
+#     # max_import_mw: 5000
+#
+#   # Ceiling on the carrier's WHOLE fleet, MW; year maps define phase-out.
+#   # Required: name, carrier. Set max_capacity_mw explicitly; omitted = 0.
+#   - class: TechnologyPhaseOut
+#     name: coal_phaseout
+#     carrier: Coal
+#     max_capacity_mw: {2030: 250000, 2035: 180000, 2040: 100000, 2045: 50000, 2050: 0}
+#     # scope: {bus: NR}
+#
+#   # Firm capacity >= (1 + margin) * peak load. Required: name, margin.
+#   - class: ReserveMargin
+#     name: reserve_margin
+#     margin: 0.15
+#     # scope: {bus: NR}
+#     # capacity_credit_by_carrier: {Solar: 0.05, Wind: 0.10}
+#
+#   # Per-Store discharge cycles. Requires hourly snapshots by default.
+#   # Required: name, max_cycles. Applies to Store, not StorageUnit.
+#   - class: StoreCyclingLimit
+#     name: battery_cycles
+#     max_cycles: 1.0
+#     # window: daily             # daily | weekly | monthly | annual.
+#     # carrier: Battery Storage  # Omit to include every Store carrier.
+#     # scope: {bus: NR}
+#     # max_snapshot_hours: 1.0    # Raising this relaxes the sampling guard.

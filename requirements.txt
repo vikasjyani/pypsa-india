@@ -1,0 +1,12 @@
+# Versions verified on Python 3.13 during migration acceptance.
+pypsa==1.2.4
+snakemake==9.23.1
+highspy==1.14.0
+linopy==0.8.0
+pandas==2.2.3
+numpy==2.2.1
+openpyxl==3.1.5
+PyYAML==6.0.3
+matplotlib==3.10.0
+netCDF4==1.7.2
+pytest==9.0.3

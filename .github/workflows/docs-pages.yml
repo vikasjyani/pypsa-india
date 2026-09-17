@@ -1,0 +1,52 @@
+name: Publish documentation
+
+on:
+  # Republish whenever the site's sources change on main. Narrowed to those
+  # paths so an ordinary code commit does not redeploy the site.
+  push:
+    branches: [main]
+    paths:
+      - docs/guide.html
+      - docs/examples/**
+      - docs/downloads/**
+      - tools/build_docs.py
+      - .github/workflows/docs-pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Pages
+        uses: actions/configure-pages@v5
+        with:
+          # Create the Pages site if it does not exist yet, instead of failing
+          # with "Get Pages site failed ... Not Found". Selecting "GitHub
+          # Actions" as the source in repository settings does not itself
+          # create the site resource that this action looks up, so the first
+          # run has nothing to configure. Needs the `pages: write` permission
+          # declared above.
+          enablement: true
+      - name: Build static site
+        run: python tools/build_docs.py
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy to Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

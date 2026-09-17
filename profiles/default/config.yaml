@@ -1,0 +1,2 @@
+# Let `snakemake generate_template` run without a separate --cores argument.
+cores: 1

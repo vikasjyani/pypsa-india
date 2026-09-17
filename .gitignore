@@ -1,0 +1,63 @@
+# Model outputs. Every one of these is reproducible from a workbook plus a
+# scenario config, so the repository carries the inputs and the code, not the
+# results. `results/` alone reached 82 MB on five scenarios.
+results/
+
+# Snakemake's own bookkeeping: DAG metadata, per-run logs, conda/singularity
+# caches, and the incomplete-output markers it writes mid-run.
+.snakemake/
+
+# Audit and verification working directories, regenerable by re-running the
+# workflow against a scenario.
+.audit/
+
+# The archive of superseded material. Deliberately kept on disk but out of the
+# repository: it is, by definition, the pile of things that are not needed, and
+# it holds the 456 KB source notebook plus old run logs and audit HTML.
+older_files/
+
+# The test suite. Kept on disk and runnable locally with `python -m pytest
+# tests -q`, but not published: 3,000 lines of regression tests is not what a
+# reader of this repository is looking for. Nothing in the workflow or CI
+# imports it, so excluding it breaks nothing.
+tests/
+
+# Internal migration and verification records. These three link only to each
+# other -- nothing in the README, the guide or tools/build_docs.py references
+# them -- so removing them together leaves no dangling link. They index
+# artefacts under .audit/ that are not published either, and they describe how
+# this project was migrated rather than how to use it.
+docs/audit.md
+docs/MIGRATION_STATUS.md
+docs/PARITY_AUDIT.md
+
+# Built documentation. `tools/build_docs.py` regenerates it from docs/.
+_site/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Excel lock files and the backups `template.force` leaves behind. A lock file
+# starting with ~$ appears while a workbook is open and must never be committed:
+# `workbook_path` already skips it, but it would still confuse a reader.
+~$*.xlsx
+*.xlsx.bak
+*.bak
+
+# Solver logs written into the working directory
+gurobi.log
+*.ilp
+*.lp
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

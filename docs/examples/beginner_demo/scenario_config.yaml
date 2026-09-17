@@ -1,0 +1,57 @@
+scenario:
+  name: beginner_demo
+  currency: INR
+  fiscal_year: true
+  base_year: 2030
+  years: [2030]
+
+mode: myopic
+family: dispatch
+
+spatial:
+  boundary:
+    level: state
+    id: KL
+  resolution: state
+  external: none
+  role_buses: shared
+
+snapshots:
+  select: all
+  resolution: 24
+
+components:
+  buses: true
+  generators: true
+  demand: true
+  loads: true
+  availability: true
+  new_generators: false
+  new_stores: false
+  storage_units: false
+  links: false
+  transfer: false
+
+loads: [KL]
+carriers: [TutorialSupply]
+
+costs:
+  wacc_row: WACC %
+  wacc_row_storage: WACC %
+  include_fom: false
+
+retirement:
+  enable: true
+
+unit_commitment:
+  enable: false
+
+solver:
+  name: highs
+  options:
+    presolve: "on"
+
+paths:
+  workbook: beginner_demo.xlsx
+
+constraints: []

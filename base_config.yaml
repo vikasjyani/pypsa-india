@@ -1,0 +1,74 @@
+# PyPSA-India — project-wide settings.
+#
+# These are project defaults. Values in data/<scenario>/scenario_config.yaml
+# override matching defaults recursively; lists are replaced as a whole.
+# Keep scenario-specific years, geography and policies in that scenario file.
+
+version: 0.1.0
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WHICH SCENARIO TO RUN
+# ─────────────────────────────────────────────────────────────────────────────
+# A scenario is a folder under data/ holding a scenario_config.yaml and its
+# workbook. Name the one to run here:
+#
+#     snakemake run
+#
+# or override it for a single run without editing this file:
+#
+#     snakemake run --config scenario=er
+#
+# List what is available:
+#
+#     python -c "import sys;sys.path.insert(0,'scripts');
+#                from _helpers import available_scenarios;print(available_scenarios())"
+
+run:
+  scenario: all_india
+
+  # Shipped scenarios:
+  #   all_india   country boundary, 5 regional-grid buses   (NR WR SR ER NER)
+  #   nr wr sr er ner
+  #               regional boundary, one bus per state
+  #
+  # Add your own with `snakemake generate_template` — see
+  # docs/getting-started/new-model.md.
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LOGGING
+# ─────────────────────────────────────────────────────────────────────────────
+logging:
+  level: INFO                  # DEBUG | INFO | WARNING | ERROR
+  format: "%(levelname)s:%(name)s:%(message)s"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SOLVER
+# ─────────────────────────────────────────────────────────────────────────────
+# Fully user-changeable, nothing hardcoded. The source notebook pinned
+# solver_name='gurobi' in both working branches (L1353, L1968) while its own
+# Settings sheet said "Highs", and the solver_options dict it defined
+# (L310-318) was never passed to either.
+solver:
+  name: highs                  # highs | gurobi | cplex | glpk
+  options:                     # passed verbatim to n.optimize(solver_options=…)
+    threads: 8
+    presolve: "on"
+    parallel: "on"
+
+  # Per-solver blocks; the loader merges the one matching `name` over `options`.
+  # gurobi:
+  #   Method: 2                # 2 = barrier, usually fastest on large LPs
+  #   Crossover: 0
+  #   BarConvTol: 1.0e-6
+  # highs:
+  #   solver: "ipm"            # "simplex" | "ipm" | "pdlp"
+  #   run_crossover: "off"
+
+
+# NOTE: no `paths.workbook` here. With one scenario per folder the workbook is
+# discovered as the single .xlsx beside its scenario_config.yaml. Setting it
+# globally would override that for EVERY scenario at once — which is exactly
+# what happened once, silently pointing all ten scenarios at one workbook.

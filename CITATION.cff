@@ -1,0 +1,44 @@
+# Citation metadata. GitHub reads this file and renders a "Cite this
+# repository" button on the repository page, offering APA and BibTeX.
+#
+# Update `version` and `date-released` when you tag a release, and add a `doi:`
+# if you ever archive a version (Zenodo will mint one from a GitHub release).
+cff-version: 1.2.0
+title: "PyPSA-India: a workbook-driven power system model for India"
+message: "If you use this model or its outputs, please cite it as below."
+type: software
+authors:
+  - given-names: Vikas
+    family-names: Jyani
+    email: vikas@vasudhaindia.org
+    affiliation: Vasudha Foundation
+repository-code: "https://github.com/vikasjyani/pypsa-india"
+url: "https://vikasjyani.github.io/pypsa-india/"
+abstract: >-
+  A Snakemake workflow that builds and solves PyPSA power system models of
+  India from Excel workbooks. It covers a national five-region scenario and
+  one scenario per regional grid, with myopic and perfect-foresight capacity
+  expansion, eight typed policy constraints (CO2 caps, renewable purchase
+  obligations, monthly capacity-factor profiles, fuel supply ceilings,
+  technology phase-out trajectories, reserve margins, corridor transfer limits
+  and per-store cycling limits), workbook validation against a single
+  component registry, and a post-solve audit of every applied constraint.
+keywords:
+  - energy system modelling
+  - capacity expansion
+  - power system planning
+  - India
+  - PyPSA
+  - renewable energy integration
+license: MIT
+version: 0.1.0
+date-released: "2026-09-17"
+references:
+  - type: software
+    title: "PyPSA: Python for Power System Analysis"
+    authors:
+      - name: "PyPSA Developers"
+    repository-code: "https://github.com/PyPSA/PyPSA"
+    url: "https://pypsa.org/"
+    license: MIT
+    notes: "The optimisation framework this workflow builds on."

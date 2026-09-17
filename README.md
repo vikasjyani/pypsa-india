@@ -1,10 +1,15 @@
 # PyPSA-India
 
-**New to the project? Start with the [PyPSA-India user guide](docs/guide.html#tutorial).**
-The guide works offline and walks through setup, a first model, Excel inputs,
-scenario YAML, technologies, policies, execution, results and troubleshooting.
-It includes topic search, copyable examples and a scenario command helper.
-The guide also links to a [downloadable beginner demo](docs/guide.html#downloads).
+**New to the project? Start with the
+[PyPSA-India user guide](https://vikasjyani.github.io/pypsa-india/#start).**
+The guide walks through setup, a first model, Excel inputs, scenario YAML,
+technologies, policies, execution, results and troubleshooting. It includes
+topic search, copyable examples and a scenario command helper, and links to a
+[downloadable beginner demo](https://vikasjyani.github.io/pypsa-india/#downloads).
+
+The same guide ships in the repository as `docs/guide.html`, which works
+offline — open the file directly rather than clicking it on GitHub, which shows
+the HTML source instead of rendering it.
 
 PyPSA-India is a Snakemake workflow that builds and solves a PyPSA power
 network from Excel workbooks. Six scenarios ship with the repository, each a
@@ -211,6 +216,38 @@ Per-*vintage* capacity bounds are not constraints here — the `Pipeline_p_min` 
 `p_nom_max`, which PyPSA enforces natively. `TechnologyPhaseOut` covers the one
 case those sheets cannot: a ceiling on a carrier's whole fleet.
 
+## Upstream PyPSA reference
+
+This project is a workflow around [PyPSA](https://pypsa.org/); the network it
+builds is an ordinary PyPSA network, so PyPSA's own documentation is the
+authority on what each attribute means. Links below are pinned to **v1.2.4**,
+the version in `requirements.txt`, because attribute names and page paths do
+move between releases.
+
+[PyPSA documentation](https://docs.pypsa.org/v1.2.4/) ·
+[source](https://github.com/PyPSA/PyPSA)
+
+| workbook sheet | PyPSA component | key attributes |
+|---|---|---|
+| `Buses` | [Bus](https://docs.pypsa.org/v1.2.4/api/components/types/buses/) | `v_nom` |
+| `Loads`, `Demand_<load>` | [Load](https://docs.pypsa.org/v1.2.4/api/components/types/loads/) | `p_set` |
+| `Generators`, `New_Generators` | [Generator](https://docs.pypsa.org/v1.2.4/api/components/types/generators/) | `p_nom`, `p_nom_extendable`, `p_nom_min`, `p_nom_max`, `p_max_pu`, `p_min_pu`, `marginal_cost`, `capital_cost`, `efficiency`, `build_year`, `lifetime` |
+| `New_Storage` with `Type: Store` | [Store](https://docs.pypsa.org/v1.2.4/api/components/types/stores/) | `e_nom` (MWh), `e_cyclic`, `standing_loss` |
+| `New_Storage` with `Type: Storage` | [StorageUnit](https://docs.pypsa.org/v1.2.4/api/components/types/storage-units/) | `p_nom` (MW), `max_hours`, `efficiency_store`, `efficiency_dispatch` |
+| `Links`, `Transfer_Capacity` | [Link](https://docs.pypsa.org/v1.2.4/api/components/types/links/) | `bus0`, `bus1`, `efficiency`, `p_min_pu` |
+| `CO2`, `carriers:` | [Carrier](https://docs.pypsa.org/v1.2.4/api/components/types/carriers/) | `co2_emissions`, `color` |
+
+Two things worth reading upstream before interpreting results:
+
+- [Store vs StorageUnit](https://docs.pypsa.org/v1.2.4/api/components/types/stores/)
+  — a Store is sized in **MWh** and needs links to move power, while a
+  StorageUnit is sized in **MW** with `max_hours` of energy. `New_Storage.Type`
+  picks between them, and the unit of `Pipeline_storage` changes with it.
+- [GlobalConstraint](https://docs.pypsa.org/v1.2.4/api/components/types/global-constraints/)
+  — PyPSA's own CO2 cap. This project uses its own `CO2EmissionLimit` instead,
+  because PyPSA's `primary_energy` type divides emissions by `efficiency`
+  (a fuel-input basis) and offers no geographic scoping or post-solve audit.
+
 ## Outputs and plotting manifests
 
 Everything a run produces lives under one folder, so a scenario's results can
@@ -268,3 +305,58 @@ and then include investment-period duration and discounting. The multi-period
 objective is reported once as a whole-horizon value, not as a cost for every
 year.
 
+
+## Getting help
+
+**Questions, bugs and feature requests →
+[open an issue](https://github.com/vikasjyani/pypsa-india/issues).** Please say
+which scenario you ran, paste the command, and attach the relevant log from
+`results/<scenario>/logs/`. Most failures name their own cause: a validation
+error quotes the sheet and cell, and a failed constraint audit names the policy
+and its margin.
+
+Before opening an issue, two checks resolve most problems:
+
+```powershell
+snakemake run -n --config scenario=er
+```
+
+A dry run confirms the DAG resolves without solving anything.
+
+```powershell
+snakemake validate_inputs --config scenario=<name>
+```
+
+Validation accumulates every workbook problem in one pass, so a filled workbook
+can be corrected in one sitting rather than ten. Errors must be fixed; warnings
+describe assumptions worth reading before you interpret results.
+
+For collaboration, data or policy enquiries that are not about the code, write
+to **vikas@vasudhaindia.org**.
+
+## Citing this work
+
+If you use this model or publish results from it, please cite it. GitHub reads
+[`CITATION.cff`](CITATION.cff) and offers ready-made APA and BibTeX through the
+**"Cite this repository"** link on the repository page.
+
+Please also cite [PyPSA](https://pypsa.org/) itself, which provides the
+optimisation framework this workflow is built on.
+
+## Attribution and licence
+
+Developed at **[Vasudha Foundation](https://www.vasudha-foundation.org/)**.
+
+Built on [PyPSA](https://pypsa.org/) (MIT) and
+[Snakemake](https://snakemake.readthedocs.io/), solved by default with
+[HiGHS](https://highs.dev/).
+
+Released under the [MIT License](LICENSE) — the same licence as PyPSA, so this
+workflow and the framework beneath it carry consistent terms. You may use,
+modify and redistribute it, including commercially, provided the copyright
+notice is retained.
+
+Input workbooks under `data/` are model inputs assembled for scenario analysis.
+Validate them against their original sources before publishing policy
+conclusions; the validation report lists the assumptions the workflow had to
+make, and `docs/guide.html` records the known input caveats.

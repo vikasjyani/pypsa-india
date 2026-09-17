@@ -31,16 +31,13 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+      # NOTE: do not add `enablement: true` here. GITHUB_TOKEN cannot create a
+      # Pages site — the API answers "Resource not accessible by integration",
+      # because creating one needs repository admin rights that the token is
+      # never granted. The site must be created once by a human in
+      # Settings -> Pages; after that this action only reads it.
       - name: Set up Pages
         uses: actions/configure-pages@v5
-        with:
-          # Create the Pages site if it does not exist yet, instead of failing
-          # with "Get Pages site failed ... Not Found". Selecting "GitHub
-          # Actions" as the source in repository settings does not itself
-          # create the site resource that this action looks up, so the first
-          # run has nothing to configure. Needs the `pages: write` permission
-          # declared above.
-          enablement: true
       - name: Build static site
         run: python tools/build_docs.py
       - name: Upload Pages artifact
